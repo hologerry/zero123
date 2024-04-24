@@ -1,24 +1,27 @@
 from pathlib import Path
+
 import numpy as np
 import torch
 
-from misc import torch_samps_to_imgs
 from adapt import Karras, ScoreAdapter, power_schedule
+
 # from adapt_vesde import VESDE  # not included to prevent import conflicts
 from adapt_sd import StableDiffusion
-
-from my.utils import tqdm, EventStorage, HeartBeat, EarlyLoopBreak
+from misc import torch_samps_to_imgs
 from my.config import BaseConf, dispatch
+from my.utils import EarlyLoopBreak, EventStorage, HeartBeat, tqdm
 from my.utils.seed import seed_everything
+
 
 class SD(BaseConf):
     """Stable Diffusion"""
-    variant:        str = "objaverse"
-    v2_highres:     bool = False
-    prompt:         str = "a photograph of an astronaut riding a horse"
-    im_path:        str = "data/nerf_synthetic/chair/train/r_2.png"
-    scale:          float = 3.0  # classifier free guidance scale
-    precision:      str = 'autocast'
+
+    variant: str = "objaverse"
+    v2_highres: bool = False
+    prompt: str = "a photograph of an astronaut riding a horse"
+    im_path: str = "data/nerf_synthetic/chair/train/r_2.png"
+    scale: float = 3.0  # classifier free guidance scale
+    precision: str = "autocast"
 
     def make(self):
         args = self.dict()
@@ -28,6 +31,7 @@ class SD(BaseConf):
 
 def smld_inference(model, σs, num_steps, ε, init_xs):
     from math import sqrt
+
     # not doing conditioning or cls guidance; for gddpm only lsun works; fine.
 
     xs = init_xs
@@ -46,7 +50,7 @@ def load_np_imgs(fname):
     fname = Path(fname)
     data = np.load(fname)
     if fname.suffix == ".npz":
-        imgs = data['arr_0']
+        imgs = data["arr_0"]
     else:
         imgs = data
     return imgs
@@ -54,8 +58,9 @@ def load_np_imgs(fname):
 
 def visualize(max_n_imgs=16):
     import torchvision.utils as vutils
-    from imageio import imwrite
+
     from einops import rearrange
+    from imageio import imwrite
 
     all_imgs = load_np_imgs("imgs/step_0.npy")
 
@@ -70,5 +75,5 @@ def visualize(max_n_imgs=16):
 
 if __name__ == "__main__":
     seed_everything(0)
-    dispatch(KarrasGen)
+    dispatch(Karras)
     visualize(16)

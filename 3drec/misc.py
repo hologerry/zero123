@@ -28,7 +28,8 @@ def imgs_to_torch(imgs):
 
 def test_encode_decode():
     import imageio
-    from run_img_sampling import ScoreAdapter, SD
+
+    from run_img_sampling import SD, ScoreAdapter
     from vis import _draw
 
     fname = "~/clean.png"

@@ -95,7 +95,7 @@ lightning:
       every_n_train_steps: 5000
   callbacks:
     image_logger:
-      target: main.ImageLogger
+      target: custom_callbacks.ImageLogger
       params:
         batch_frequency: 500
         max_images: 32
