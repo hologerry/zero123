@@ -1,54 +1,17 @@
 import math
 import os
-import sys
 
 import cv2
 import numpy as np
 import torch
 import torchvision
 
-from diffusers.pipelines.stable_diffusion import StableDiffusionSafetyChecker
-from einops import rearrange
-from gradio_new import (
-    CameraVisualizer,
-    load_model_from_config,
-    main_run,
-    main_run_simple,
-)
-from ldm.util import create_carvekit_interface
+from camera_utils import get_T
+from demo_helpers import main_run_simple
 from omegaconf import OmegaConf
 from PIL import Image
 from rich import print
-from tqdm import tqdm
-from transformers import AutoFeatureExtractor  # , CLIPImageProcessor
-
-
-def cartesian_to_spherical(xyz):
-    ptsnew = np.hstack((xyz, np.zeros(xyz.shape)))
-    xy = xyz[:, 0] ** 2 + xyz[:, 1] ** 2
-    z = np.sqrt(xy + xyz[:, 2] ** 2)
-    theta = np.arctan2(np.sqrt(xy), xyz[:, 2])  # for elevation angle defined from Z-axis down
-    # ptsnew[:,4] = np.arctan2(xyz[:,2], np.sqrt(xy)) # for elevation angle defined from XY-plane up
-    azimuth = np.arctan2(xyz[:, 1], xyz[:, 0])
-    return np.array([theta, azimuth, z])
-
-
-def get_T(target_RT, cond_RT):
-    R, T = target_RT[:3, :3], target_RT[:, -1]
-    T_target = -R.T @ T
-
-    R, T = cond_RT[:3, :3], cond_RT[:, -1]
-    T_cond = -R.T @ T
-
-    theta_cond, azimuth_cond, z_cond = cartesian_to_spherical(T_cond[None, :])
-    theta_target, azimuth_target, z_target = cartesian_to_spherical(T_target[None, :])
-
-    d_theta = theta_target - theta_cond
-    d_azimuth = (azimuth_target - azimuth_cond) % (2 * math.pi)
-    d_z = z_target - z_cond
-
-    d_T = torch.tensor([d_theta.item(), math.sin(d_azimuth.item()), math.cos(d_azimuth.item()), d_z.item()])
-    return d_T
+from utils import load_model_from_config
 
 
 def main_demo():
@@ -106,7 +69,7 @@ def main_demo():
         input_im = input_im * 2 - 1
         input_im = torchvision.transforms.functional.resize(input_im, [256, 256])
 
-        print("input_im shape:", input_im.shape)
+        # print(f"input_im shape: {input_im.shape}")
 
         # y_angle_values = [float(i) for i in range(-90, 91, 5)]
 
