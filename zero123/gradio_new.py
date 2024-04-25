@@ -429,8 +429,18 @@ def main_run_simple(
 
     sampler = DDIMSampler(models["turncam"])
 
-    x_samples_ddim = sample_model(
-        input_im, models["turncam"], sampler, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, T
+    x_samples_ddim = sample_model_simple(
+        input_im,
+        models["turncam"],
+        sampler,
+        precision,
+        h,
+        w,
+        ddim_steps,
+        n_samples,
+        scale,
+        ddim_eta,
+        T,
     )
 
     output_ims = []
