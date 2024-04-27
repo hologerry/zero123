@@ -21,12 +21,12 @@ from tqdm import tqdm
 from utils import load_model_from_config
 
 
-def main_eval():
-    device_idx = 0
+def main_eval(device_idx=0, finetune_step=6000):
     # ckpt = "/home/yuegao/Dynamics/stable-zero123/stable_zero123.ckpt"
     # ckpt = "/home/yuegao/Dynamics/zero123-weights/zero123-xl.ckpt"
     # ckpt = "/home/yuegao/Dynamics/zero123-weights/165000.ckpt"
-    ckpt = "logs/2024-04-24T02-19-47_sd-scalar-flow-finetune-c_concat-256/checkpoints/last.ckpt"
+    # ckpt = "logs/2024-04-24T02-19-47_sd-scalar-flow-finetune-c_concat-256/checkpoints/last.ckpt"
+    ckpt = f"logs/2024-04-24T14-04-16_sd-scalar-flow-finetune-c_concat-256/checkpoints/step={finetune_step-1:09d}.ckpt"
     # config = "configs/sd-objaverse-finetune-c_concat-256.yaml"
     config = "configs/sd-scalar-flow-finetune-c_concat-256.yaml"
 
@@ -38,7 +38,7 @@ def main_eval():
     print("Instantiating LatentDiffusion...")
     models["turncam"] = load_model_from_config(config, ckpt, device=device)
 
-    root_dir = "/scratch/Dynamics/ScalarFlow/zero123_dataset/"
+    root_dir = "/data/Dynamics/ScalarFlow/zero123_dataset/"
     with open(os.path.join(root_dir, "valid_paths.json")) as f:
         paths = json.load(f)
 
@@ -62,13 +62,13 @@ def main_eval():
 
     for sim_frame_name in tqdm(val_paths):
         for target_cam in ["00", "01", "03", "04"]:
-            cond_img_path = f"/scratch/Dynamics/ScalarFlow/zero123_dataset/{sim_frame_name}/{source_cam}.png"
-            gt_img_path = f"/scratch/Dynamics/ScalarFlow/zero123_dataset/{sim_frame_name}/{target_cam}.png"
+            cond_img_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/{sim_frame_name}/{source_cam}.png"
+            gt_img_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/{sim_frame_name}/{target_cam}.png"
             assert os.path.exists(cond_img_path), f"cond_img_path {cond_img_path} does not exist"
             assert os.path.exists(gt_img_path), f"gt_img_path {gt_img_path} does not exist"
 
-            cond_cam_path = f"/scratch/Dynamics/ScalarFlow/zero123_dataset/camera/{source_cam}.npy"
-            target_cam_path = f"/scratch/Dynamics/ScalarFlow/zero123_dataset/camera/{target_cam}.npy"
+            cond_cam_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/camera/{source_cam}.npy"
+            target_cam_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/camera/{target_cam}.npy"
             cond_RT = np.load(cond_cam_path)
             target_RT = np.load(target_cam_path)
 
@@ -136,11 +136,12 @@ def main_eval():
         "SSIM_v2": torch.tensor(ssims_v2).mean().item(),
         "LPIPS_VGG": torch.tensor(lpipss_vggs).mean().item(),
     }
-    output_json = "outputs/eval_zero123_xl_finetune_2024-04-24T02-19-47_last.json"
+    output_json = f"outputs/eval_zero123_xl_finetune_2024-04-24T14-04-16_{finetune_step}.json"
     with open(output_json, "w") as f:
         json.dump(output_dict, f)
 
 
 if __name__ == "__main__":
 
-    main_eval()
+    for ckp_id in range(15500, 15501, 1):
+        main_eval(device_idx=0, finetune_step=ckp_id)

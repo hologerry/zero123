@@ -176,7 +176,7 @@ if __name__ == "__main__":
         "target": "pytorch_lightning.callbacks.ModelCheckpoint",
         "params": {
             "dirpath": ckptdir,
-            "filename": "{epoch:06}-{step:09}",
+            "filename": "{step:09}",
             "verbose": True,
             "save_last": True,
             "save_top_k": -1,
@@ -234,7 +234,7 @@ if __name__ == "__main__":
                 "target": "pytorch_lightning.callbacks.ModelCheckpoint",
                 "params": {
                     "dirpath": os.path.join(ckptdir, "trainstep_checkpoints"),
-                    "filename": "{epoch:06}-{step:09}",
+                    "filename": "{step:09}",
                     "verbose": True,
                     "save_top_k": -1,
                     "every_n_train_steps": 300,
