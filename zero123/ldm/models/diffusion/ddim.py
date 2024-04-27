@@ -2,7 +2,7 @@
 
 import torch
 import numpy as np
-from tqdm import tqdm
+# from tqdm import tqdm
 from functools import partial
 from einops import rearrange
 
@@ -152,7 +152,7 @@ class DDIMSampler(object):
         total_steps = timesteps if ddim_use_original_steps else timesteps.shape[0]
         print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps)
+        iterator = time_range # tqdm(time_range, desc='DDIM Sampler', total=total_steps)
 
         for i, step in enumerate(iterator):
             index = total_steps - i - 1
@@ -258,7 +258,8 @@ class DDIMSampler(object):
         x_next = x0
         intermediates = []
         inter_steps = []
-        for i in tqdm(range(num_steps), desc='Encoding Image'):
+        # for i in tqdm(range(num_steps), desc='Encoding Image'):
+        for i in range(num_steps):
             t = torch.full((x0.shape[0],), i, device=self.model.device, dtype=torch.long)
             if unconditional_guidance_scale == 1.:
                 noise_pred = self.model.apply_model(x_next, t, c)
@@ -313,7 +314,7 @@ class DDIMSampler(object):
         total_steps = timesteps.shape[0]
         print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-        iterator = tqdm(time_range, desc='Decoding image', total=total_steps)
+        iterator = time_range # tqdm(time_range, desc='Decoding image', total=total_steps)
         x_dec = x_latent
         for i, step in enumerate(iterator):
             index = total_steps - i - 1
