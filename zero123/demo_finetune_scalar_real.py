@@ -33,34 +33,36 @@ def main_demo(device_idx=0, finetune_step=6000):
 
     # img_path = "/home/yuegao/Dynamics/HyFluid/data/ScalarReal/colmap_100/input/train02.png"
 
-    sim_frame_name = "sim_000103_frame_000100"
+    scalar_real_zero123_dataset_path = "/data/Dynamics/ScalarReal/zero123_dataset"
+
+    frame_id = 119
     source_cam = "02"
     # target_cam = "00"
     for target_cam in ["00", "01", "03", "04"]:
-        cond_img_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/{sim_frame_name}/{source_cam}.png"
-        gt_img_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/{sim_frame_name}/{target_cam}.png"
+        cond_img_path = f"{scalar_real_zero123_dataset_path}/frame_{frame_id:06d}/{source_cam}.png"
+        gt_img_path = f"{scalar_real_zero123_dataset_path}/frame_{frame_id:06d}/{target_cam}.png"
         assert os.path.exists(cond_img_path), f"cond_img_path {cond_img_path} does not exist"
         assert os.path.exists(gt_img_path), f"gt_img_path {gt_img_path} does not exist"
 
-        cond_cam_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/camera/{source_cam}.npy"
-        target_cam_path = f"/data/Dynamics/ScalarFlow/zero123_dataset/camera/{target_cam}.npy"
+        cond_cam_path = f"{scalar_real_zero123_dataset_path}/camera/{source_cam}.npy"
+        target_cam_path = f"{scalar_real_zero123_dataset_path}/camera/{target_cam}.npy"
         cond_RT = np.load(cond_cam_path)
         target_RT = np.load(target_cam_path)
 
         d_T = get_T(target_RT, cond_RT)
         # print(f"d_T: {d_T}")
         # continue
-        save_path = f"outputs/vis_zero123_xl_finetune_latest"
+        save_path = f"outputs/vis_zero123_xl_finetune_scalar_real_{finetune_step}"
 
         os.makedirs(save_path, exist_ok=True)
 
         raw_im = cv2.imread(cond_img_path, cv2.IMREAD_GRAYSCALE)
         raw_im = 255 - raw_im
-        cv2.imwrite(f"{save_path}/{sim_frame_name}_cam{source_cam}_raw_im.png", raw_im)
+        cv2.imwrite(f"{save_path}/{frame_id:06d}_cam{source_cam}_raw_im.png", raw_im)
 
         gt_im = cv2.imread(gt_img_path, cv2.IMREAD_GRAYSCALE)
         gt_im = 255 - gt_im
-        cv2.imwrite(f"{save_path}/{sim_frame_name}_cam{target_cam}_gt_im.png", gt_im)
+        cv2.imwrite(f"{save_path}/{frame_id:06d}_cam{target_cam}_gt_im.png", gt_im)
 
         raw_im = cv2.cvtColor(raw_im, cv2.COLOR_GRAY2RGB)
         image = Image.fromarray(raw_im)
@@ -77,7 +79,7 @@ def main_demo(device_idx=0, finetune_step=6000):
         )
 
         for i, img in enumerate(out_imgs):
-            img.save(f"{save_path}/{sim_frame_name}_cam{source_cam}to{target_cam}_output_{i}.png")
+            img.save(f"{save_path}/{frame_id:06d}_cam{source_cam}to{target_cam}_output_{i}.png")
 
 
 if __name__ == "__main__":

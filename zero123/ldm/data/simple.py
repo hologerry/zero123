@@ -428,10 +428,12 @@ class ScalarFlowStaticData(Dataset):
             self.paths = json.load(f)
 
         total_objects = len(self.paths)
+        # 104 simulation, 140 frames (20-160)
+        # use first 1.5 % simulation as validation
         if validation:
-            self.paths = self.paths[math.floor(total_objects / 100.0 * 99.0) :]  # used last 1% as validation
+            self.paths = self.paths[: math.floor(total_objects / 100.0 * 1.5)]  # used first 1% as validation
         else:
-            self.paths = self.paths[: math.floor(total_objects / 100.0 * 99.0)]  # used first 99% as training
+            self.paths = self.paths[math.floor(total_objects / 100.0 * 1.5) :]  # used last 99% as training
         print("============= length of dataset %d =============" % len(self.paths))
         self.tform = image_transforms
 

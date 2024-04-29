@@ -89,15 +89,15 @@ data:
 
 lightning:
   find_unused_parameters: false
-  metrics_over_trainsteps_checkpoint: True
+  metrics_over_trainsteps_checkpoint: False
   modelcheckpoint:
     params:
-      every_n_train_steps: 500
+      every_n_train_steps: 1000
   callbacks:
     image_logger:
       target: custom_callbacks.ImageLogger
       params:
-        batch_frequency: 500
+        batch_frequency: 1000
         max_images: 32
         increase_log_steps: False
         log_first_step: True
@@ -110,7 +110,7 @@ lightning:
           unconditional_guidance_scale: 3.0
           unconditional_guidance_label: [""]
     learning_rate_logger:
-      target: custom_callbacks.LearningRateMonitor
+      target: pytorch_lightning.callbacks.LearningRateMonitor
       params:
         logging_interval: step
     cuda_callback:
