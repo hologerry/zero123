@@ -1,4 +1,4 @@
---extra-index-url https://download.pytorch.org/whl/cu116
+--extra-index-url https://download.pytorch.org/whl/cu113
 torch==1.12.1
 torchvision==0.13.1
 albumentations==0.4.3
