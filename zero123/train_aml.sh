@@ -6,4 +6,4 @@ python main.py \
     --num_nodes 1 \
     --seed 42 \
     --check_val_every_n_epoch 10 \
-    --finetune_from ../../zero123-weights/zero123-xl.ckpt \
+    --finetune_from /mnt/blob/Dynamics/zero123-weights/zero123-xl.ckpt \

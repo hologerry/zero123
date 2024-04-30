@@ -72,7 +72,7 @@ model:
 data:
   target: ldm.data.simple.ScalarFlowStaticDataModuleFromConfig
   params:
-    root_dir: ../../data/ScalarFlow/zero123_dataset
+    root_dir: /mnt/blob/Dynamics/data/ScalarFlow/zero123_dataset
     batch_size: 96
     num_workers: 16
     total_view: 5
