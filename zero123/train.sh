@@ -1,5 +1,6 @@
 python main.py \
     -t \
+    --logdir /data/Dynamics/zero123_finetune/logs/ \
     --base configs/sd-scalar-flow-finetune-c_concat-256.yaml \
     --gpus 0,1,2,3 \
     --scale_lr False \

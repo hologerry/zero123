@@ -19,7 +19,7 @@ def main_demo():
     # ckpt = "/home/yuegao/Dynamics/stable-zero123/stable_zero123.ckpt"
     # ckpt = "/home/yuegao/Dynamics/zero123-weights/zero123-xl.ckpt"
     # ckpt = "/home/yuegao/Dynamics/zero123-weights/165000.ckpt"
-    ckpt = "logs/2024-04-24T02-19-47_sd-scalar-flow-finetune-c_concat-256/checkpoints/last.ckpt"
+    ckpt = "/data/Dynamics/zero123_finetune/logs/2024-04-29T22-10-19_sd-scalar-flow-finetune-c_concat-256/checkpoints/step=000014999.ckpt"
     # config = "configs/sd-objaverse-finetune-c_concat-256.yaml"
     config = "configs/sd-scalar-flow-finetune-c_concat-256.yaml"
 
@@ -36,11 +36,11 @@ def main_demo():
     # img_path = "/home/yuegao/Dynamics/HyFluid/data/ScalarReal/colmap_100/input/train02.png"
 
     frame_name = "0120"
-    source_cam = "view1"
+    source_cam = "view3"
     # target_cam = "00"
-    for target_cam in ["view2", "view3"]:
-        cond_img_path = f"/data/Dynamics/HyFluid_data/real_smoke_231026/{source_cam}_stable_square/{frame_name}.jpg"
-        gt_img_path = f"/data/Dynamics/HyFluid_data/real_smoke_231026/{target_cam}_stable_square/{frame_name}.jpg"
+    for target_cam in ["view1", "view1"]:
+        cond_img_path = f"/data/Dynamics/HyFluid_data/real_smoke_231026/{source_cam}_cropped/{frame_name}.jpg"
+        gt_img_path = f"/data/Dynamics/HyFluid_data/real_smoke_231026/{target_cam}_cropped/{frame_name}.jpg"
         assert os.path.exists(cond_img_path), f"cond_img_path {cond_img_path} does not exist"
         assert os.path.exists(gt_img_path), f"gt_img_path {gt_img_path} does not exist"
 
@@ -52,14 +52,16 @@ def main_demo():
         d_T = get_T(target_RT, cond_RT)
         # print(f"{source_cam} to {target_cam} d_T: {d_T}")
         # continue
-        save_path = "outputs/vis_hyfluid_teaser_zero123_xl_finetune"
+        save_path = "outputs/vis_hyfluid_teaser_align_zero123_xl_finetune"
 
         os.makedirs(save_path, exist_ok=True)
 
         raw_im = cv2.imread(cond_img_path, cv2.IMREAD_GRAYSCALE)
+        raw_im = 255 - raw_im
         cv2.imwrite(f"{save_path}/{frame_name}_cam{source_cam}_raw_im.png", raw_im)
 
         gt_im = cv2.imread(gt_img_path, cv2.IMREAD_GRAYSCALE)
+        gt_im = 255 - gt_im
         cv2.imwrite(f"{save_path}/{frame_name}_cam{target_cam}_gt_im.png", gt_im)
 
         raw_im = cv2.cvtColor(raw_im, cv2.COLOR_GRAY2RGB)

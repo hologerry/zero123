@@ -46,7 +46,7 @@ def sample_model_simple(input_im, model, sampler, precision, h, w, ddim_steps, n
                 eta=ddim_eta,
                 x_T=None,
             )
-            print(samples_ddim.shape)
+            # print(samples_ddim.shape)
             # samples_ddim = torch.nn.functional.interpolate(samples_ddim, 64, mode='nearest', antialias=False)
             x_samples_ddim = model.decode_first_stage(samples_ddim)
             return torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0).cpu()

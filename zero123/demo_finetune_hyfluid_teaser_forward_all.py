@@ -1,0 +1,113 @@
+import math
+import os
+
+import cv2
+import numpy as np
+import torch
+import torchvision
+
+from camera_utils import get_T
+from demo_helpers import main_run_simple
+from omegaconf import OmegaConf
+from PIL import Image
+from rich import print
+from tqdm import tqdm
+from utils import load_model_from_config
+
+
+def main_demo():
+    device_idx = 0
+    # ckpt = "/home/yuegao/Dynamics/stable-zero123/stable_zero123.ckpt"
+    ckpt = "/home/yuegao/Dynamics/zero123-weights/zero123-xl.ckpt"
+    # ckpt = "/home/yuegao/Dynamics/zero123-weights/165000.ckpt"
+    # ckpt = "/data/Dynamics/zero123_finetune/logs/2024-04-24T14-04-16_sd-scalar-flow-finetune-c_concat-256/checkpoints/step=000014999.ckpt"
+    # config = "configs/sd-objaverse-finetune-c_concat-256.yaml"
+    config = "configs/sd-scalar-flow-finetune-c_concat-256.yaml"
+
+    device = f"cuda:{device_idx}"
+    config = OmegaConf.load(config)
+
+    # Instantiate all models beforehand for efficiency.
+    models = dict()
+    print("Instantiating LatentDiffusion...")
+    models["turncam"] = load_model_from_config(config, ckpt, device=device)
+
+    # cam_vis = CameraVisualizer(None)
+
+    # img_path = "/home/yuegao/Dynamics/HyFluid/data/ScalarReal/colmap_100/input/train02.png"
+
+    hyfluid_teaser_root = "/data/Dynamics/HyFluid_data/real_smoke_231026"
+    # frame_name = "0120"
+    source_cam = "view3"
+    target_cams = ["view1", "view2"]
+
+    # view3 to view1 d_T: tensor([-0.0562,  0.2112,  0.9774,  0.0096])
+    # view3 to view2 d_T: tensor([ 0.0118, -0.2740,  0.9617, -0.2643])
+
+    # scalar_real_zero123_dataset_path = "/data/Dynamics/ScalarReal/zero123_dataset"
+    # source_cam = "02"
+    # target_cams = ["00", "01", "03", "04"]
+    # target_cam = "00"
+    # 02 to 00 d_T: tensor([-0.0044, -0.9930,  0.1183, -0.1905])
+    # 02 to 01 d_T: tensor([-2.4634e-04, -6.6850e-01,  7.4371e-01, -1.2735e-01])
+    # 02 to 03 d_T: tensor([-0.0105,  0.5163,  0.8564,  0.1978])
+    # 02 to 04 d_T: tensor([-0.0062,  0.7976,  0.6032,  0.3620])
+    frame_ids = [i for i in range(40, 160)]
+    for target_cam in target_cams:
+        for frame_id in tqdm(frame_ids, desc=f"target_cam {target_cam}"):
+            frame_name = f"{frame_id:04d}"
+            cond_img_path = f"{hyfluid_teaser_root}/view3_cropped/{frame_name}.jpg"
+            # gt_img_path = f"{hyfluid_teaser_root}/{target_cam}_cropped/{frame_name}.jpg"
+            assert os.path.exists(cond_img_path), f"cond_img_path {cond_img_path} does not exist"
+            # assert os.path.exists(gt_img_path), f"gt_img_path {gt_img_path} does not exist"
+
+            cond_cam_path = f"{hyfluid_teaser_root}/camera_RT_zero123/{source_cam}.npy"
+            target_cam_path = f"{hyfluid_teaser_root}/camera_RT_zero123/{target_cam}.npy"
+
+            # cond_cam_path = f"{scalar_real_zero123_dataset_path}/camera/{source_cam}.npy"
+            # target_cam_path = f"{scalar_real_zero123_dataset_path}/camera/{target_cam}.npy"
+
+            cond_RT = np.load(cond_cam_path)
+            target_RT = np.load(target_cam_path)
+
+            d_T = get_T(target_RT, cond_RT)
+            # print(f"{source_cam} to {target_cam} d_T: {d_T}")
+            # continue
+            save_path = f"{hyfluid_teaser_root}/teaser_cam_xl_raw_ckp_{source_cam}_to_{target_cam}"
+
+            os.makedirs(save_path, exist_ok=True)
+
+            raw_im = cv2.imread(cond_img_path, cv2.IMREAD_GRAYSCALE)
+            raw_im = 255 - raw_im
+            # cv2.imwrite(f"{save_path}/{frame_name}_cam{source_cam}_raw_im.png", raw_im)
+
+            # gt_im = cv2.imread(gt_img_path, cv2.IMREAD_GRAYSCALE)
+            # gt_im = 255 - gt_im
+            # cv2.imwrite(f"{save_path}/{frame_name}_cam{target_cam}_gt_im.png", gt_im)
+
+            raw_im = cv2.cvtColor(raw_im, cv2.COLOR_GRAY2RGB)
+            image = Image.fromarray(raw_im)
+            input_im = torchvision.transforms.ToTensor()(image).unsqueeze(0).to(device)
+            input_im = input_im * 2 - 1
+            input_im = torchvision.transforms.functional.resize(input_im, [256, 256])
+
+            # print(f"input_im shape: {input_im.shape}")
+
+            out_imgs = main_run_simple(
+                models,
+                device,
+                d_T,
+                raw_im=input_im,
+                save_path=save_path,
+                n_samples=1,
+            )
+
+            # for i, img in enumerate(out_imgs):
+            #     img.save(f"{save_path}/{frame_name}_{source_cam}_to_{target_cam}_output_{i}.png")
+            img = out_imgs[0]
+            img.save(f"{save_path}/{frame_name}.png")
+
+
+if __name__ == "__main__":
+
+    main_demo()
